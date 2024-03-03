@@ -1,0 +1,48 @@
+﻿@using FluentAutocompleteTest.Models
+@implements IDialogContentComponent
+
+<EditForm EditContext="_editContext">
+    <FluentGrid>
+        <FluentGridItem xs="12">
+            <FluentAutocomplete 
+                Label="Ingredient Type"
+                OptionText="(x) => x.Title"
+                @bind-SelectedOptions="_form.IngredientTypePicker"
+                OnOptionsSearch="IngredientSearch" 
+                TOption="IngredientTypeVm">
+            </FluentAutocomplete>
+        </FluentGridItem>
+
+        <FluentGridItem xs="12">
+            <FluentTextField Label="Ingredient Name">
+            </FluentTextField>
+        </FluentGridItem>
+    </FluentGrid>
+</EditForm>
+
+
+@code {
+    private EditContext? _editContext;
+    private IngredientForCreateVm _form = new();
+    private List<IngredientTypeVm> _ingredientTypes = new List<IngredientTypeVm>
+    {
+        new IngredientTypeVm { Title = "Baking" },
+        new IngredientTypeVm { Title = "Dairy" },
+        new IngredientTypeVm { Title = "Meat" },
+        new IngredientTypeVm { Title = "Vegetable" },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(_form);
+    }
+
+    protected async Task IngredientSearch(OptionsSearchEventArgs<IngredientTypeVm> e)
+    {
+        var searchTerm = e.Text;
+        var filtered = _ingredientTypes.Where(x => x.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+        e.Items = filtered;
+    }
+
+
+}

@@ -1,0 +1,30 @@
+﻿@page "/"
+@using FluentAutocompleteTest.Pages.Dialogs
+@inject IDialogService DialogService
+
+<PageTitle>Home</PageTitle>
+
+<h1>Autocomplete Test</h1>
+
+<p>Repro steps:</p>
+<ol>
+    <li>Select the "New food" button</li>
+    <li>Select "Add ingredient" in the dialog</li>
+    <li>Try and enter an Ingredient name in the panel</li>
+</ol>
+
+<FluentButton OnClick="ShowDialog">
+    Add new food
+</FluentButton>
+
+@code {
+    private IDialogReference? _dialogRef;
+
+    private async Task ShowDialog()
+    {
+        _dialogRef = await DialogService.ShowDialogAsync<NewFoodDialog>(new DialogParameters
+        {
+            Title = "New Food"
+        });
+    }
+}

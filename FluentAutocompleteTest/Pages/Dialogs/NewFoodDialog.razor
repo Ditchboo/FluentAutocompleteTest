@@ -1,0 +1,95 @@
+﻿@using FluentAutocompleteTest.Models
+@implements IDialogContentComponent
+@inject IDialogService DialogService
+
+<EditForm EditContext="_editContext">
+    <DataAnnotationsValidator/>
+
+    <FluentGrid>
+        <FluentGridItem xs="12">
+            <FluentTextField 
+                @bind-Value="_form.Title"
+                Label="Recipe Name"/>
+        </FluentGridItem>
+
+        <FluentGridItem xs="12">
+            <FluentAutocomplete 
+                Label="Ingredients"
+                OptionText="(x) => x.Name"
+                @bind-SelectedOptions="_form.Ingredients"
+                OnOptionsSearch="IngredientSearch"
+                TOption="IngredientVm">
+
+            </FluentAutocomplete>
+        </FluentGridItem>
+    </FluentGrid>
+    <FluentGrid>
+        <FluentButton OnClick="OpenNewIngredientPanel">Add Ingredient</FluentButton>
+    </FluentGrid>
+</EditForm>
+
+<FluentDialogFooter>
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" VerticalAlignment="VerticalAlignment.Bottom">
+        <FluentButton OnClick="Save"
+                      Title="Save"
+                      Appearance="Appearance.Accent">
+            Save
+        </FluentButton>
+        <FluentButton OnClick="async () => await Dialog!.CancelAsync()" Title="Cancel" Appearance="Appearance.Neutral">
+            Cancel
+        </FluentButton>
+    </FluentStack>
+</FluentDialogFooter>
+
+@code {
+    [CascadingParameter] 
+    public FluentDialog? Dialog { get; set; }
+
+    private EditContext? _editContext;
+    private FoodForCreateVm _form = new();
+
+    private List<IngredientVm> _ingredients = new List<IngredientVm>
+    {
+        new IngredientVm { Id = 1, Name = "Flour", Type = new() { Title = "Baking" } },
+        new IngredientVm { Id = 2, Name = "Sugar", Type = new() { Title = "Baking" } },
+        new IngredientVm { Id = 3, Name = "Eggs", Type = new() { Title = "Dairy" } },
+        new IngredientVm { Id = 4, Name = "Milk", Type = new() { Title = "Dairy" } },
+    };
+
+    protected async Task OpenNewIngredientPanel()
+    {
+        var dialogParameters = new DialogParameters
+        {
+            Alignment = HorizontalAlignment.Right,
+            ShowDismiss = false,
+            PreventDismissOnOverlayClick = true,
+        };
+
+        var dialog = DialogService.ShowPanelAsync<NewIngredientPanel>(dialogParameters);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new(_form);
+    }
+
+    protected async Task IngredientSearch(OptionsSearchEventArgs<IngredientVm> e)
+    {
+        if (!string.IsNullOrWhiteSpace(e.Text))
+        {
+            e.Items = _ingredients.Where(x => x.Name.Contains(e.Text));
+        }
+        else
+        {
+            e.Items = [];
+        }
+    }
+
+    protected async Task Save()
+    {
+        if (_editContext!.Validate())
+        {
+            await Dialog!.CloseAsync();
+        }
+    }
+}
